@@ -1,7 +1,9 @@
 package database
 
 import (
+	"context"
 	"database/sql"
+	"time"
 )
 
 type UserModel struct {
@@ -13,4 +15,12 @@ type User struct {
 	Email    string `json:"email"`
 	Name     string `json:"name"`
 	Password string `json:"-"`
+}
+
+func (m *UserModel) Insert(user *User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := "insert into users (email, name, password) VALUES ($1, $2, $3) RETURNING id"
+	return m.DB.QueryRowContext(ctx, query, user.Email, user.Password, user.Name).Scan(&user.Id)
 }

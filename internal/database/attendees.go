@@ -11,3 +11,7 @@ type Attendee struct {
 	UserId  int `json:"userId"`
 	EventId int `json:"eventId"`
 }
+
+func (m *AttendeeModel) Insert(att) {
+
+}
