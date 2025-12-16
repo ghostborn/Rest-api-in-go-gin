@@ -20,7 +20,7 @@ func (m *AttendeeModel) Insert(attendee *Attendee) (*Attendee, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	query := "INSERT INTO attendees (user_id, event_id) VALUES ($1,$2) returning id"
+	query := "INSERT INTO attendees (event_id, user_id) VALUES ($1,$2) returning id"
 	err := m.DB.QueryRowContext(ctx, query, attendee.EventId, attendee.UserId).Scan(&attendee.Id)
 	if err != nil {
 		return nil, err
@@ -81,5 +81,36 @@ func (m *AttendeeModel) Delete(userId, eventId int) error {
 	}
 
 	return nil
+
+}
+
+func (m *AttendeeModel) GetEventsByAttendee(attendeeId int) ([]*Event, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT e.id, e.owner_id, e.name, e.description, e.date, e.location
+		FROM events e
+		JOIN attendees a ON e.id = a.event_id
+		WHERE a.user_id = $1
+	`
+	rows, err := m.DB.QueryContext(ctx, query, attendeeId)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var events []*Event
+	for rows.Next() {
+		var event Event
+		err := rows.Scan(&event.Id, &event.OwnerId, &event.Name, &event.Description, &event.Date, &event.Location)
+		if err != nil {
+			return nil, err
+		}
+		events = append(events, &event)
+	}
+
+	return events, nil
 
 }
