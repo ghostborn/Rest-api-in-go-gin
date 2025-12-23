@@ -55,7 +55,7 @@ func (m *EventModel) GetAll() ([]*Event, error) {
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-	return nil, err
+	return events, nil
 }
 
 func (m *EventModel) Get(id int) (*Event, error) {
